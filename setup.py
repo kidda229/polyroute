@@ -15,4 +15,3 @@ setup(
         "tiktoken>=0.5.0",
     ],
 )
-
