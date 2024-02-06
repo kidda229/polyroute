@@ -13,5 +13,6 @@ setup(
         "httpx>=0.25.0",
         "pydantic>=2.5.0",
         "tiktoken>=0.5.0",
+# refactor: performance
     ],
 )
