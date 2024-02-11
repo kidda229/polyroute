@@ -6,6 +6,7 @@ setup(
     description="Multi-provider LLM request router with fallback and cost tracking",
     author="chu2bard",
     license="MIT",
+# refactor: handle errors
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=[
