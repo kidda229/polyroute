@@ -1,4 +1,5 @@
 requests>=2.31.0
+# todo: improve this
 httpx>=0.25.0
 pydantic>=2.5.0
 # refactor: handle errors
