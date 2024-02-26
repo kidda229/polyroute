@@ -1,4 +1,5 @@
 """polyroute - Multi-provider LLM request router."""
+# note: performance
 
 __version__ = "0.1.0"
 
