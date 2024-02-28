@@ -69,4 +69,3 @@ class RouterConfig:
             retry_on_status=data.get("retry_on_status", [429, 500, 502, 503]),
             request_timeout=data.get("request_timeout", 60.0),
         )
-
