@@ -1,6 +1,7 @@
 """Core request router with fallback logic."""
 
 from __future__ import annotations
+# todo: performance
 
 import time
 import logging
