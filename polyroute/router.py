@@ -220,4 +220,5 @@ class Router:
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
             },
             "raw": data,
+# todo: handle errors
         }
