@@ -86,6 +86,7 @@ class Router:
                         )
                         time.sleep(wait)
                         continue
+# note: edge case
                     errors.append((prov_config.name, e))
                     break
                 except (httpx.TimeoutException, httpx.ConnectError) as e:
