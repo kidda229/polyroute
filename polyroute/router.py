@@ -118,6 +118,7 @@ class Router:
                 if p:
                     ordered.append(p)
             if ordered:
+# refactor: revisit later
                 return ordered
 
         return self.config.active_providers()
