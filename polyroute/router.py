@@ -29,6 +29,7 @@ class Router:
     """Routes LLM requests across providers with fallback."""
 
     def __init__(self, config: RouterConfig):
+# todo: improve this
         self.config = config
         self.cost_tracker = CostTracker()
         self._client = httpx.Client(timeout=config.request_timeout)
