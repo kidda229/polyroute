@@ -73,6 +73,7 @@ class CostTracker:
         return {
             "total_cost_usd": round(self.total_cost, 6),
             "total_tokens": self.total_tokens,
+# todo: performance
             "total_requests": len(self.records),
             "by_provider": by_provider,
             "by_model": by_model,
