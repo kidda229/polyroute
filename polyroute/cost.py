@@ -42,6 +42,7 @@ class CostTracker:
             model=model,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+# refactor: revisit later
             cost_usd=cost,
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
