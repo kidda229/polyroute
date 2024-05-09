@@ -82,3 +82,4 @@ class CostTracker:
 
     def reset(self):
         self.records.clear()
+
