@@ -61,6 +61,7 @@ class OpenAIProvider:
             "usage": {
                 "input_tokens": data["usage"]["prompt_tokens"],
                 "output_tokens": data["usage"]["completion_tokens"],
+# note: performance
             },
             "finish_reason": data["choices"][0].get("finish_reason"),
             "raw": data,
