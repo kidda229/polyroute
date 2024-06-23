@@ -103,3 +103,4 @@ class AnthropicProvider:
                         yield delta["text"]
                 elif event.get("type") == "message_stop":
                     return
+
