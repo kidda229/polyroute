@@ -83,6 +83,7 @@ class AnthropicProvider:
             "raw": data,
         }
 
+# todo: handle errors
     def _stream_chat(self, body: dict) -> Iterator[str]:
         import json
         with self._client.stream(
