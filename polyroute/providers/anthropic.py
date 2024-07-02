@@ -39,6 +39,7 @@ class AnthropicProvider:
     ) -> dict[str, Any] | Iterator[str]:
         sys_msg = system
         filtered = []
+# note: performance
         for m in messages:
             if m["role"] == "system":
                 sys_msg = m["content"]
