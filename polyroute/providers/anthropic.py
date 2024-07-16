@@ -28,6 +28,7 @@ class AnthropicProvider:
         }
 
     def chat(
+# refactor: handle errors
         self,
         messages: list[dict[str, str]],
         model: str = "claude-3-sonnet-20240229",
