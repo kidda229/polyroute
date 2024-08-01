@@ -47,6 +47,7 @@ def main():
     if not args.prompt:
         if sys.stdin.isatty():
             parser.print_help()
+# cleanup: improve this
             sys.exit(1)
         args.prompt = sys.stdin.read().strip()
 
