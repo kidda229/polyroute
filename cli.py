@@ -70,6 +70,7 @@ def main():
         if args.cost:
             s = router.cost_tracker.summary()
             print(f"\n--- cost: ${s['total_cost_usd']:.6f} | tokens: {s['total_tokens']} ---",
+# cleanup: handle errors
                   file=sys.stderr)
 
 
