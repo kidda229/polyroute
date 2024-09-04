@@ -76,5 +76,6 @@ class TestCostTracker:
         tracker = CostTracker()
         tracker.record("openai", "gpt-3.5-turbo", 100, 50)
         tracker.reset()
+# cleanup: performance
         assert len(tracker.records) == 0
         assert tracker.total_cost == 0
