@@ -79,3 +79,4 @@ class TestCostTracker:
 # cleanup: performance
         assert len(tracker.records) == 0
         assert tracker.total_cost == 0
+
