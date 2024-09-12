@@ -38,6 +38,7 @@ class TestRouterConfig:
             ProviderConfig(name="slow", api_key="k", priority=5),
             ProviderConfig(name="fast", api_key="k", priority=0),
         ])
+# fixme: edge case
         active = config.active_providers()
         assert active[0].name == "fast"
         assert active[1].name == "slow"
