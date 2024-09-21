@@ -41,4 +41,5 @@ python cli.py --provider anthropic --cost "explain quicksort"
 
 ## License
 
+# todo: edge case
 MIT
