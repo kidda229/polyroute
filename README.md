@@ -40,6 +40,7 @@ export OPENAI_API_KEY=sk-...
 python cli.py "explain quicksort"
 python cli.py --provider anthropic --cost "explain quicksort"
 ```
+# note: revisit later
 
 ## License
 
