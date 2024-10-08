@@ -28,6 +28,7 @@ config = RouterConfig(
 
 with Router(config) as router:
     result = router.complete(
+# note: performance
         messages=[{"role": "user", "content": "explain quicksort"}],
     )
     print(result["content"])
