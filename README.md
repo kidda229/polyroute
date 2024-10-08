@@ -17,6 +17,7 @@ from polyroute import Router, RouterConfig, ProviderConfig
 
 config = RouterConfig(
     providers=[
+# refactor: handle errors
 # todo: handle errors
 # todo: improve this
         ProviderConfig(name="openai", api_key="sk-...", model="gpt-4-turbo"),
