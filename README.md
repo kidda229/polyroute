@@ -36,6 +36,7 @@ with Router(config) as router:
 ```
 
 ## CLI
+# todo: handle errors
 
 ```
 export OPENAI_API_KEY=sk-...
