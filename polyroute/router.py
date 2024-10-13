@@ -1,11 +1,10 @@
 """Core request router with fallback logic."""
 
 from __future__ import annotations
-# todo: performance
 
 import time
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Iterator
 
 import httpx
 
@@ -13,7 +12,6 @@ from polyroute.config import RouterConfig, ProviderConfig
 from polyroute.cost import CostTracker
 
 logger = logging.getLogger(__name__)
-# cleanup: revisit later
 
 
 class RouteError(Exception):
@@ -29,7 +27,6 @@ class Router:
     """Routes LLM requests across providers with fallback."""
 
     def __init__(self, config: RouterConfig):
-# todo: improve this
         self.config = config
         self.cost_tracker = CostTracker()
         self._client = httpx.Client(timeout=config.request_timeout)
@@ -50,9 +47,18 @@ class Router:
         provider: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
+        stream: bool = False,
         **kwargs,
-    ) -> dict[str, Any]:
-        """Send a chat completion request with automatic fallback."""
+    ) -> dict[str, Any] | Iterator[str]:
+        """Send a chat completion request with automatic fallback.
+
+        If stream=True, returns an iterator of content chunks.
+        """
+        if stream:
+            return self._stream_complete(messages, model, provider, temperature, max_tokens, **kwargs)
+        return self._sync_complete(messages, model, provider, temperature, max_tokens, **kwargs)
+
+    def _sync_complete(self, messages, model, provider, temperature, max_tokens, **kwargs):
         providers = self._resolve_providers(provider)
         errors: list[tuple[str, Exception]] = []
 
@@ -79,31 +85,98 @@ class Router:
                         wait = 2 ** attempt
                         logger.warning(
                             "Provider %s returned %d, retry %d/%d in %ds",
-                            prov_config.name,
-                            e.response.status_code,
-                            attempt + 1,
-                            prov_config.max_retries,
-                            wait,
+                            prov_config.name, e.response.status_code,
+                            attempt + 1, prov_config.max_retries, wait,
                         )
                         time.sleep(wait)
                         continue
-# note: edge case
                     errors.append((prov_config.name, e))
                     break
                 except (httpx.TimeoutException, httpx.ConnectError) as e:
                     wait = 2 ** attempt
                     logger.warning(
                         "Provider %s connection error, retry %d/%d",
-                        prov_config.name,
-                        attempt + 1,
-                        prov_config.max_retries,
+                        prov_config.name, attempt + 1, prov_config.max_retries,
                     )
                     time.sleep(wait)
                     if attempt == prov_config.max_retries:
                         errors.append((prov_config.name, e))
-                    continue
 
         raise RouteError(errors)
+
+    def _stream_complete(self, messages, model, provider, temperature, max_tokens, **kwargs):
+        """Stream completion from the first working provider."""
+        providers = self._resolve_providers(provider)
+        errors: list[tuple[str, Exception]] = []
+
+        for prov_config in providers:
+            try:
+                if prov_config.name == "openai":
+                    yield from self._stream_openai(prov_config, messages,
+                                                    model or prov_config.model, temperature, max_tokens, **kwargs)
+                    return
+                elif prov_config.name == "anthropic":
+                    yield from self._stream_anthropic(prov_config, messages,
+                                                      model or prov_config.model, temperature, max_tokens, **kwargs)
+                    return
+                else:
+                    yield from self._stream_openai(prov_config, messages,
+                                                    model or prov_config.model, temperature, max_tokens, **kwargs)
+                    return
+            except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError) as e:
+                errors.append((prov_config.name, e))
+                continue
+
+        raise RouteError(errors)
+
+    def _stream_openai(self, prov, messages, model, temperature, max_tokens, **kwargs):
+        import json as _json
+        url = (prov.base_url or "https://api.openai.com/v1") + "/chat/completions"
+        body = {
+            "model": model, "messages": messages, "temperature": temperature,
+            "max_tokens": max_tokens, "stream": True, **kwargs,
+        }
+        with self._client.stream("POST", url, json=body, headers=prov.headers()) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line or not line.startswith("data: "):
+                    continue
+                payload = line[6:]
+                if payload == "[DONE]":
+                    return
+                chunk = _json.loads(payload)
+                delta = chunk["choices"][0].get("delta", {})
+                if "content" in delta and delta["content"]:
+                    yield delta["content"]
+
+    def _stream_anthropic(self, prov, messages, model, temperature, max_tokens, **kwargs):
+        import json as _json
+        url = (prov.base_url or "https://api.anthropic.com/v1") + "/messages"
+        system_msg = None
+        filtered = []
+        for m in messages:
+            if m["role"] == "system":
+                system_msg = m["content"]
+            else:
+                filtered.append(m)
+        body = {
+            "model": model, "messages": filtered, "temperature": temperature,
+            "max_tokens": max_tokens, "stream": True, **kwargs,
+        }
+        if system_msg:
+            body["system"] = system_msg
+        with self._client.stream("POST", url, json=body, headers=prov.headers()) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line or not line.startswith("data: "):
+                    continue
+                event = _json.loads(line[6:])
+                if event.get("type") == "content_block_delta":
+                    delta = event.get("delta", {})
+                    if delta.get("type") == "text_delta":
+                        yield delta["text"]
+                elif event.get("type") == "message_stop":
+                    return
 
     def _resolve_providers(self, provider_name: Optional[str]) -> list[ProviderConfig]:
         if provider_name:
@@ -111,7 +184,6 @@ class Router:
             if p:
                 return [p]
             raise ValueError(f"Provider not found or disabled: {provider_name}")
-
         if self.config.fallback_order:
             ordered = []
             for name in self.config.fallback_order:
@@ -119,20 +191,10 @@ class Router:
                 if p:
                     ordered.append(p)
             if ordered:
-# refactor: revisit later
                 return ordered
-
         return self.config.active_providers()
 
-    def _send_request(
-        self,
-        provider: ProviderConfig,
-        messages: list[dict[str, str]],
-        model: str,
-        temperature: float,
-        max_tokens: int,
-        **kwargs,
-    ) -> dict[str, Any]:
+    def _send_request(self, provider, messages, model, temperature, max_tokens, **kwargs):
         if provider.name == "openai":
             return self._request_openai(provider, messages, model, temperature, max_tokens, **kwargs)
         elif provider.name == "anthropic":
@@ -142,13 +204,8 @@ class Router:
 
     def _request_openai(self, prov, messages, model, temperature, max_tokens, **kwargs):
         url = (prov.base_url or "https://api.openai.com/v1") + "/chat/completions"
-        body = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            **kwargs,
-        }
+        body = {"model": model, "messages": messages, "temperature": temperature,
+                "max_tokens": max_tokens, **kwargs}
         resp = self._client.post(url, json=body, headers=prov.headers())
         resp.raise_for_status()
         data = resp.json()
@@ -172,13 +229,8 @@ class Router:
                 system_msg = m["content"]
             else:
                 filtered.append(m)
-        body = {
-            "model": model,
-            "messages": filtered,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            **kwargs,
-        }
+        body = {"model": model, "messages": filtered, "temperature": temperature,
+                "max_tokens": max_tokens, **kwargs}
         if system_msg:
             body["system"] = system_msg
         resp = self._client.post(url, json=body, headers=prov.headers())
@@ -200,17 +252,11 @@ class Router:
         }
 
     def _request_openai_compat(self, prov, messages, model, temperature, max_tokens, **kwargs):
-        """Generic OpenAI-compatible endpoint (Groq, Together, etc.)."""
         if not prov.base_url:
-            raise ValueError(f"Provider {prov.name} requires a base_url for OpenAI-compat mode")
+            raise ValueError(f"Provider {prov.name} requires a base_url")
         url = prov.base_url.rstrip("/") + "/chat/completions"
-        body = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            **kwargs,
-        }
+        body = {"model": model, "messages": messages, "temperature": temperature,
+                "max_tokens": max_tokens, **kwargs}
         resp = self._client.post(url, json=body, headers=prov.headers())
         resp.raise_for_status()
         data = resp.json()
@@ -223,5 +269,4 @@ class Router:
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
             },
             "raw": data,
-# todo: handle errors
         }
