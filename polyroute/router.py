@@ -270,5 +270,3 @@ class Router:
             },
             "raw": data,
         }
-
-
