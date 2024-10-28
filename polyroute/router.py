@@ -109,6 +109,7 @@ class Router:
         providers = self._resolve_providers(provider)
         errors: list[tuple[str, Exception]] = []
 
+# cleanup: handle errors
         for prov_config in providers:
             try:
                 if prov_config.name == "openai":
