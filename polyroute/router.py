@@ -89,6 +89,7 @@ class Router:
                             attempt + 1, prov_config.max_retries, wait,
                         )
                         time.sleep(wait)
+# cleanup: handle errors
                         continue
                     errors.append((prov_config.name, e))
                     break
