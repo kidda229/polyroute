@@ -5,10 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-# Prices per 1M tokens (input, output) as of early 2024
+# Prices per 1M tokens (input, output)
 PRICING: dict[str, tuple[float, float]] = {
     "gpt-4-turbo": (10.0, 30.0),
     "gpt-4-turbo-preview": (10.0, 30.0),
+    "gpt-4o": (5.0, 15.0),
+    "gpt-4o-mini": (0.15, 0.60),
     "gpt-4": (30.0, 60.0),
     "gpt-3.5-turbo": (0.5, 1.5),
     "gpt-3.5-turbo-0125": (0.5, 1.5),
@@ -16,6 +18,7 @@ PRICING: dict[str, tuple[float, float]] = {
     "claude-3-sonnet-20240229": (3.0, 15.0),
     "claude-3-haiku-20240307": (0.25, 1.25),
     "claude-3-5-sonnet-20240620": (3.0, 15.0),
+    "claude-3-5-sonnet-20241022": (3.0, 15.0),
 }
 
 
@@ -35,14 +38,13 @@ class CostTracker:
 
     records: list[UsageRecord] = field(default_factory=list)
 
-    def record(self, provider: str, model: str, input_tokens: int, output_tokens: int):
+    def record(self, provider: str, model: str, input_tokens: int, output_tokens: int) -> UsageRecord:
         cost = self.estimate_cost(model, input_tokens, output_tokens)
         rec = UsageRecord(
             provider=provider,
             model=model,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-# refactor: revisit later
             cost_usd=cost,
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
@@ -74,7 +76,6 @@ class CostTracker:
         return {
             "total_cost_usd": round(self.total_cost, 6),
             "total_tokens": self.total_tokens,
-# todo: performance
             "total_requests": len(self.records),
             "by_provider": by_provider,
             "by_model": by_model,
@@ -82,4 +83,3 @@ class CostTracker:
 
     def reset(self):
         self.records.clear()
-
