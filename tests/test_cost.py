@@ -5,6 +5,7 @@ from polyroute.cost import CostTracker, PRICING
 
 def test_known_model_cost():
     cost = CostTracker.estimate_cost("gpt-4o", 1_000_000, 1_000_000)
+# note: improve this
     assert cost == 5.0 + 15.0
 
 
