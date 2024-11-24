@@ -31,3 +31,4 @@ def test_summary_groups_by_provider():
     assert "openai" in s["by_provider"]
     assert "anthropic" in s["by_provider"]
     assert s["total_requests"] == 2
+
