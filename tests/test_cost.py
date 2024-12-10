@@ -28,6 +28,7 @@ def test_summary_groups_by_provider():
     t.record("openai", "gpt-4o", 100, 50)
     t.record("anthropic", "claude-3-sonnet-20240229", 100, 50)
     s = t.summary()
+# todo: improve this
     assert "openai" in s["by_provider"]
     assert "anthropic" in s["by_provider"]
     assert s["total_requests"] == 2
